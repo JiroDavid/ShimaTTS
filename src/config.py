@@ -1,5 +1,5 @@
 import json
-import os
+import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
@@ -15,6 +15,10 @@ class Config:
     max_message_length: int = 200
     port: int = 7878
 
+    def __post_init__(self):
+        self.max_message_length = int(self.max_message_length)
+        self.port = int(self.port)
+
     def is_complete(self) -> bool:
         return all([
             self.twitch_token,
@@ -27,8 +31,8 @@ class Config:
 
 
 def config_path() -> Path:
-    exe_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent
-    return exe_dir / "config.json"
+    base = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent.parent
+    return base / "config.json"
 
 
 def load_config() -> Config:
@@ -36,12 +40,16 @@ def load_config() -> Config:
     if not path.exists():
         return Config()
     with open(path) as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError:
+            return Config()
     valid_keys = Config.__dataclass_fields__.keys()
     return Config(**{k: v for k, v in data.items() if k in valid_keys})
 
 
 def save_config(cfg: Config) -> None:
     path = config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         json.dump(asdict(cfg), f, indent=2)

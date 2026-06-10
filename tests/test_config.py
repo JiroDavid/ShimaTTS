@@ -26,10 +26,7 @@ def test_save_and_load_roundtrip(tmp_path, basic_config):
     with patch("src.config.config_path", return_value=config_file):
         save_config(basic_config)
         loaded = load_config()
-    assert loaded.twitch_token == "test_token"
-    assert loaded.twitch_client_id == "test_client_id"
-    assert loaded.channel_name == "testchannel"
-    assert loaded.port == 7878
+    assert loaded == basic_config
 
 
 def test_load_returns_defaults_when_file_missing(tmp_path):
@@ -45,3 +42,11 @@ def test_save_writes_valid_json(tmp_path, basic_config):
         save_config(basic_config)
     data = json.loads(config_file.read_text())
     assert data["channel_name"] == "testchannel"
+
+
+def test_load_returns_defaults_on_malformed_json(tmp_path):
+    config_file = tmp_path / "config.json"
+    config_file.write_text("{not valid json")
+    with patch("src.config.config_path", return_value=config_file):
+        cfg = load_config()
+    assert cfg.twitch_token == ""
