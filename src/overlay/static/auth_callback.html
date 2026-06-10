@@ -37,6 +37,7 @@
     const hash = window.location.hash.substring(1);
     const params = Object.fromEntries(new URLSearchParams(hash));
     const token = params['access_token'];
+    const clientId = decodeURIComponent(new URLSearchParams(window.location.search).get('state') || '');
 
     if (!token) {
       document.getElementById('title').textContent = 'Login failed';
@@ -46,7 +47,7 @@
       fetch('/auth/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, client_id: clientId }),
       })
       .then(res => {
         if (res.ok) {

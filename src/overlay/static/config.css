@@ -109,3 +109,46 @@ button:hover { opacity: 0.88; }
 
 .login-status.connected    { background: #0d2a1a; border: 1px solid #22c55e; color: #86efac; }
 .login-status.not-connected { background: #2a1a0d; border: 1px solid #f97316; color: #fdba74; }
+
+.auto-label { color: #555; font-size: 11px; margin-left: 6px; }
+
+.file-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.file-row input[type="text"] { flex: 1; }
+
+.file-pick-btn {
+  background: #2a2a48;
+  color: #e0e0e0;
+  border: 1px solid #3a3a60;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.file-pick-btn:hover { background: #3a3a60; }
+
+input[type="file"] { display: none; }
+
+.saved-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #052e16;
+  border-top: 2px solid #22c55e;
+  color: #86efac;
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.saved-banner.hidden { display: none; }

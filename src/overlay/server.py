@@ -1,9 +1,12 @@
+import asyncio
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import Set
 
-from fastapi import Body, FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+import requests as req
+from fastapi import Body, FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -32,12 +35,55 @@ async def auth_callback():
 @app.post("/auth/token")
 async def auth_token(data: dict = Body(...)):
     token = data.get("token", "").strip()
+    client_id = data.get("client_id", "").strip()
     if not token:
         raise HTTPException(status_code=400, detail="No token provided")
     cfg = load_config()
     cfg.twitch_token = token
+    if client_id:
+        cfg.twitch_client_id = client_id
+    if client_id:
+        try:
+            resp = await asyncio.to_thread(
+                req.get,
+                "https://api.twitch.tv/helix/users",
+                headers={"Authorization": f"Bearer {token}", "Client-Id": client_id},
+                timeout=5,
+            )
+            if resp.ok:
+                users = resp.json().get("data", [])
+                if users:
+                    cfg.channel_name = users[0]["login"]
+        except Exception:
+            pass
     save_config(cfg)
-    return {"status": "ok"}
+    return {"status": "ok", "channel_name": cfg.channel_name}
+
+
+def _data_dir() -> Path:
+    from src.config import config_path
+    d = config_path().parent / "data"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+@app.post("/upload/voice")
+async def upload_voice(file: UploadFile = File(...)):
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in ('.wav', '.mp3'):
+        raise HTTPException(status_code=400, detail="Only WAV and MP3 supported")
+    dest = _data_dir() / f"voice_sample{suffix}"
+    with open(dest, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"path": str(dest)}
+
+
+@app.post("/upload/gif")
+async def upload_gif(file: UploadFile = File(...)):
+    dest = _data_dir() / "overlay.gif"
+    with open(dest, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"path": str(dest)}
 
 
 @app.get("/overlay-gif")

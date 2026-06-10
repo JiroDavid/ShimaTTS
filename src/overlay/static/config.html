@@ -31,7 +31,7 @@
         <div id="login-status" class="login-status not-connected">Not connected</div>
         <button type="button" id="login-btn" class="login-btn">Login with Twitch</button>
 
-        <label>Channel Name (your Twitch username)</label>
+        <label>Channel Name <span class="auto-label" id="channel-auto-label">(auto-filled after login)</span></label>
         <input type="text" name="channel_name" placeholder="your_username">
 
         <label>Channel Point Reward Name (exact)</label>
@@ -40,14 +40,22 @@
 
       <section>
         <h2>Voice</h2>
-        <label>Voice Sample Path (WAV or MP3, 10-30 seconds)</label>
-        <input type="text" name="voice_sample" placeholder="C:\Users\you\voice_sample.wav">
+        <label>Voice Sample (WAV or MP3, 10-30 seconds)</label>
+        <div class="file-row">
+          <input type="text" name="voice_sample" id="voice_path" placeholder="C:\Users\you\voice_sample.wav">
+          <label class="file-pick-btn" for="voice_pick">Browse</label>
+          <input type="file" id="voice_pick" accept=".wav,.mp3">
+        </div>
       </section>
 
       <section>
         <h2>Overlay</h2>
-        <label>GIF Path</label>
-        <input type="text" name="overlay_gif" placeholder="C:\Users\you\shima.gif">
+        <label>Alert GIF</label>
+        <div class="file-row">
+          <input type="text" name="overlay_gif" id="gif_path" placeholder="C:\Users\you\shima.gif">
+          <label class="file-pick-btn" for="gif_pick">Browse</label>
+          <input type="file" id="gif_pick" accept=".gif">
+        </div>
       </section>
 
       <section>
@@ -59,9 +67,14 @@
         <input type="number" name="port" value="7878">
       </section>
 
-      <button type="submit">Save &amp; Start</button>
+      <button type="submit" id="save-btn">Save &amp; Start</button>
     </form>
   </div>
+
+  <div id="saved-banner" class="saved-banner hidden">
+    <span>&#10003;</span> ShimaTTS is running - close this tab and go stream!
+  </div>
+
   <script src="/static/config.js"></script>
 </body>
 </html>
