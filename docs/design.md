@@ -15,7 +15,7 @@ The app runs as a single `.exe` (PyInstaller onedir bundle), sits in the system 
 
 ## Architecture
 
-One Python process with five internal components communicating via an in-process asyncio queue:
+One Python process with six internal components communicating via an in-process asyncio queue:
 
 ```
 Twitch EventSub (WebSocket)
