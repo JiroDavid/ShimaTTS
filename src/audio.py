@@ -1,8 +1,7 @@
 import asyncio
-import wave
 from typing import Awaitable, Callable
 
-import numpy as np
+import soundfile as sf
 try:
     import sounddevice as sd
 except OSError:
@@ -10,25 +9,14 @@ except OSError:
 
 
 def get_wav_duration_ms(wav_path: str) -> int:
-    with wave.open(wav_path, "r") as f:
-        return int(f.getnframes() / f.getframerate() * 1000)
+    info = sf.info(wav_path)
+    return int(info.duration * 1000)
 
 
 def play_wav(wav_path: str) -> None:
     if sd is None:
         raise RuntimeError("sounddevice not available (PortAudio not installed)")
-    with wave.open(wav_path, "r") as f:
-        rate = f.getframerate()
-        channels = f.getnchannels()
-        sampwidth = f.getsampwidth()
-        raw = f.readframes(f.getnframes())
-
-    _DTYPE_MAP = {1: np.uint8, 2: np.int16, 4: np.int32}
-    dtype = _DTYPE_MAP.get(sampwidth, np.int16)
-    data = np.frombuffer(raw, dtype=dtype)
-    if channels == 2:
-        data = data.reshape(-1, 2)
-
+    data, rate = sf.read(wav_path)
     sd.play(data, samplerate=rate)
     sd.wait()
 

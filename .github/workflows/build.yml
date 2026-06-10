@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install PyTorch with CUDA
+        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt

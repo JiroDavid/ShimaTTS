@@ -4,7 +4,6 @@ import os
 from typing import Callable, Tuple
 
 from src.config import Config
-from src.filter import is_allowed
 import src.tts as tts_module
 import src.audio as audio
 
@@ -18,9 +17,6 @@ class QueueManager:
         self._queue: asyncio.Queue[Tuple[str, str]] = asyncio.Queue()
 
     def enqueue(self, username: str, message: str) -> None:
-        if not is_allowed(message, self.config.max_message_length):
-            logger.info("Filtered message from %s (length=%d)", username, len(message))
-            return
         self._queue.put_nowait((username, message))
 
     async def run(self) -> None:
@@ -35,8 +31,9 @@ class QueueManager:
 
     async def _process(self, username: str, message: str) -> None:
         loop = asyncio.get_running_loop()
+        tts_text = f"{username} says {message}"
         wav_path = await loop.run_in_executor(
-            None, tts_module.generate, message, self.config.voice_sample
+            None, tts_module.generate, tts_text, self.config.voice_sample, self.config.voice_sample_text
         )
 
         async def on_start(duration_ms: int) -> None:

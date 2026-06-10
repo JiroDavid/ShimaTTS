@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Run on Windows to build ShimaTTS.exe.
-Requires: pip install pyinstaller (on Windows)
-"""
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -10,6 +7,19 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 STATIC_DIR = ROOT / "src" / "overlay" / "static"
 ASSETS_DIR = ROOT / "assets"
+
+
+def find_binary(name: str) -> Path:
+    path = shutil.which(name)
+    if not path:
+        raise FileNotFoundError(
+            f"Could not find '{name}' on PATH. Install ffmpeg and ensure it is on your PATH."
+        )
+    return Path(path)
+
+
+ffmpeg = find_binary("ffmpeg")
+ffprobe = find_binary("ffprobe")
 
 cmd = [
     sys.executable, "-m", "PyInstaller",
@@ -19,13 +29,23 @@ cmd = [
     "--icon", str(ASSETS_DIR / "icon.ico"),
     "--add-data", f"{STATIC_DIR};src/overlay/static",
     "--add-data", f"{ASSETS_DIR};assets",
-    "--hidden-import", "TTS",
+    "--add-binary", f"{ffmpeg};.",
+    "--add-binary", f"{ffprobe};.",
+    "--collect-all", "f5_tts",
+    "--collect-all", "vocos",
+    "--collect-all", "soundfile",
+    "--collect-all", "better_profanity",
+    "--collect-all", "transformers",
+    "--collect-all", "tokenizers",
     "--hidden-import", "torch",
     "--hidden-import", "torchaudio",
     "--hidden-import", "sounddevice",
     "--hidden-import", "pystray",
-    "--collect-all", "TTS",
-    "--collect-all", "better_profanity",
+    "--hidden-import", "pydub",
+    "--hidden-import", "omegaconf",
+    "--hidden-import", "hydra",
+    "--hidden-import", "cached_path",
+    "--hidden-import", "safetensors",
     "--paths", ".",
     str(ROOT / "src" / "main.py"),
 ]

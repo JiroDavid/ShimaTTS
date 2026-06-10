@@ -15,11 +15,11 @@
 
 ---
 
-Channel point redeems trigger an AI TTS alert in OBS. Your viewer types a message, ShimaTTS speaks it in a cloned voice, and an animated overlay appears on stream - GIF on top, username and message below. Runs entirely on your machine using XTTS v2 on your GPU.
+Channel point redeems trigger an AI TTS alert in OBS. Your viewer types a message, ShimaTTS speaks it in a cloned voice as "[username] says [message]", and an animated overlay appears on stream - GIF on top, username and message below. Runs entirely on your machine using F5-TTS on your GPU.
 
 ## Features
 
-- **AI Voice Cloning** - Clone any voice from a 6-30 second audio sample (XTTS v2)
+- **AI Voice Cloning** - Clone any voice from a 6-30 second audio sample (F5-TTS)
 - **Animated OBS Overlay** - Transparent browser source with your GIF + viewer name + message
 - **Twitch Channel Points** - Listens to a specific reward via EventSub WebSocket
 - **TTS Queue** - Multiple redemptions play one at a time, no audio overlap
@@ -32,7 +32,7 @@ Channel point redeems trigger an AI TTS alert in OBS. Your viewer types a messag
 - Windows 10 / 11
 - Nvidia GPU with CUDA (8GB+ VRAM recommended, tested on RTX 3060)
 - [OBS Studio](https://obsproject.com)
-- ~2GB free disk space (for the XTTS v2 model, downloaded on first run)
+- ~3GB free disk space (for the F5-TTS model, downloaded on first run)
 
 ## Installation
 
@@ -40,9 +40,9 @@ Channel point redeems trigger an AI TTS alert in OBS. Your viewer types a messag
 2. Extract it anywhere (e.g. `C:\ShimaTTS\`)
 3. Run `ShimaTTS.exe`
 4. A config page opens in your browser - fill in your credentials, voice sample path, and GIF path
-5. Click **Save & Start** - the XTTS v2 model downloads automatically (~1.8GB, one time only)
+5. Click **Save & Start** - the F5-TTS model downloads automatically (~1GB, one time only)
 
-> First launch takes a few minutes while the model downloads and warms up. After that, startup is ~5 seconds.
+> First launch takes a few minutes while the model downloads and warms up. After that, startup is ~30 seconds.
 
 ## OBS Setup
 
@@ -63,6 +63,7 @@ The overlay is fully transparent - it floats over your stream and only appears w
 | **Length** | 10-30 seconds |
 | **Format** | WAV or MP3 |
 | **Content** | Clear speech, no background music or reverb |
+| **Transcript** | Fill in the exact words spoken - improves clone quality significantly |
 | **Mic distance** | Close-mic for best clone quality |
 
 ## Configuration
@@ -75,8 +76,9 @@ Settings are saved in `config.json` next to the exe. You can edit it directly or
 | `channel_name` | Your Twitch username | - |
 | `reward_name` | Exact name of the channel point reward to watch | - |
 | `voice_sample` | Path to your voice sample file (WAV/MP3) | - |
+| `voice_sample_text` | Exact words spoken in the voice sample (improves quality) | - |
 | `overlay_gif` | Path to the GIF shown in the alert | - |
-| `max_message_length` | Max characters before a message is trimmed | `200` |
+| `max_message_length` | Max characters before a message is dropped | `200` |
 | `port` | Local server port | `7878` |
 
 ## Testing
@@ -110,8 +112,8 @@ Connects to EventSub and prints incoming redemption events to console without ge
 | **Cost** | Free | Free | $5-$99/mo | Pay-per-use |
 | **Privacy** | Full - no data leaves your PC | Messages sent to cloud | Messages sent to cloud | Messages sent to cloud |
 | **Custom GIF overlay** | Yes | Limited | No | No |
-| **Latency** | ~1-3s (GPU) | ~0.5s | ~1-2s | ~0.5s |
-| **Voice quality** | High (XTTS v2) | Robotic | Very High | Good |
+| **Latency** | ~2-5s (GPU) | ~0.5s | ~1-2s | ~0.5s |
+| **Voice quality** | High (F5-TTS) | Robotic | Very High | Good |
 | **Channel points native** | Yes | Yes | No | No |
 | **Setup difficulty** | One-time download | Instant | API key | API key |
 

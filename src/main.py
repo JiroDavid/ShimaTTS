@@ -20,6 +20,11 @@ import src.tts as tts_module
 _EXE_DIR = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent.parent
 LOG_PATH = _EXE_DIR / "ShimaTTS.log"
 
+if getattr(sys, 'frozen', False):
+    import pydub
+    pydub.AudioSegment.converter = str(_EXE_DIR / "ffmpeg.exe")
+    pydub.AudioSegment.ffprobe = str(_EXE_DIR / "ffprobe.exe")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -36,6 +41,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--test-tts", metavar="MESSAGE", help="Generate and play TTS without Twitch")
     p.add_argument("--test-overlay", action="store_true", help="Fire a fake redemption in OBS")
     p.add_argument("--test-twitch", action="store_true", help="Connect and print redemptions without TTS")
+    p.add_argument("--tts-server", action="store_true", help=argparse.SUPPRESS)
     return p.parse_args()
 
 
@@ -88,7 +94,7 @@ async def run_app(cfg: Config) -> None:
     tray_thread = threading.Thread(target=tray.run, daemon=True)
     tray_thread.start()
 
-    logger.info("Loading XTTS v2 model...")
+    logger.info("Starting TTS server...")
     tts_module.load_model(progress_callback=lambda m: logger.info("TTS: %s", m))
     logger.info("Model ready.")
 
@@ -122,6 +128,11 @@ def _open_config_after_delay(url: str, delay: float = 1.0) -> None:
 def main() -> None:
     args = parse_args()
     cfg = load_config()
+
+    if args.tts_server:
+        from src.tts_server import run as run_tts_server
+        run_tts_server()
+        return
 
     if args.test_tts:
         if not cfg.voice_sample:

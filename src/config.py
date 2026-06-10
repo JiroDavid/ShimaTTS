@@ -11,6 +11,7 @@ class Config:
     channel_name: str = ""
     reward_name: str = ""
     voice_sample: str = ""
+    voice_sample_text: str = ""
     overlay_gif: str = ""
     max_message_length: int = 200
     port: int = 7878
