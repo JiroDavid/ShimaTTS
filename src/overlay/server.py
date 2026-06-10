@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Set
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import Body, FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -54,7 +54,7 @@ async def config_data():
 
 
 @app.post("/config/save")
-async def config_save(data: dict):
+async def config_save(data: dict = Body(...)):
     valid_keys = Config.__dataclass_fields__.keys()
     cfg = Config(**{k: v for k, v in data.items() if k in valid_keys})
     save_config(cfg)

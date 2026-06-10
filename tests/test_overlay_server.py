@@ -38,6 +38,7 @@ async def test_config_data_returns_json(mock_config):
     data = resp.json()
     assert data["channel_name"] == "testchannel"
     assert data["port"] == 7878
+    assert data["twitch_client_id"] == "test_client_id"
 
 
 @pytest.mark.asyncio
