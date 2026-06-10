@@ -34,7 +34,6 @@ def test_play_wav_calls_sounddevice(tmp_path):
         mock_sd.wait.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_play_with_notify_calls_on_start(tmp_path):
     wav_path = str(tmp_path / "test.wav")
     make_test_wav(wav_path, duration_ms=200)
