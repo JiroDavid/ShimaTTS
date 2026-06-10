@@ -74,24 +74,25 @@ class TwitchListener:
         backoff = 1
         while self._running:
             try:
-                self.on_status_change("connected")
                 await self._connect(broadcaster_id)
                 backoff = 1
             except Exception as e:
                 logger.error("Twitch connection error: %s", e)
                 self.on_status_change("reconnecting")
-                await asyncio.sleep(min(backoff, 60))
                 backoff = min(backoff * 2, 60)
+                await asyncio.sleep(backoff)
 
     async def _connect(self, broadcaster_id: str) -> None:
         async with websockets.connect(EVENTSUB_WS) as ws:
+            self.on_status_change("connected")
             async for raw in ws:
                 msg = json.loads(raw)
                 msg_type = msg.get("metadata", {}).get("message_type")
 
                 if msg_type == "session_welcome":
                     session_id = msg["payload"]["session"]["id"]
-                    subscribe_to_redemptions(
+                    await asyncio.to_thread(
+                        subscribe_to_redemptions,
                         self.token, self.client_id, broadcaster_id, session_id
                     )
 
