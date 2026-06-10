@@ -37,6 +37,14 @@ jobs:
       - name: Build exe
         run: python build.py
 
+      - name: Show dist folder size
+        run: |
+          $distSize = (Get-ChildItem -Recurse dist\ShimaTTS | Measure-Object -Property Length -Sum).Sum
+          Write-Host "dist/ShimaTTS uncompressed: $([math]::Round($distSize / 1MB, 1)) MB"
+          Write-Host "--- largest files ---"
+          Get-ChildItem -Recurse dist\ShimaTTS | Sort-Object Length -Descending | Select-Object -First 20 |
+            ForEach-Object { Write-Host "$([math]::Round($_.Length / 1MB, 1)) MB  $($_.FullName.Replace((Get-Location).Path + '\dist\ShimaTTS\', ''))" }
+
       - name: Zip dist folder
         run: Compress-Archive -Path dist\ShimaTTS -DestinationPath ShimaTTS.zip
 
@@ -44,7 +52,7 @@ jobs:
         run: |
           $size = (Get-Item ShimaTTS.zip).Length
           Write-Host "ShimaTTS.zip size: $([math]::Round($size / 1MB, 1)) MB"
-          if ($size -gt 2GB) { Write-Warning "File exceeds GitHub 2 GB upload limit!" }
+          if ($size -gt 2048MB) { Write-Error "File exceeds GitHub 2 GB upload limit — trim the bundle"; exit 1 }
 
       - name: Create release
         env:
