@@ -18,19 +18,18 @@
     <div id="status" class="status hidden"></div>
 
     <form id="config-form">
+      <input type="hidden" name="twitch_token" id="twitch_token_hidden">
+
       <section>
         <h2>Twitch</h2>
-        <label>
-          OAuth Token
-          <a href="https://twitchtokengenerator.com" target="_blank" rel="noopener">(get one)</a>
-        </label>
-        <input type="password" name="twitch_token" placeholder="oauth:xxxxxxxxxxxxxxxxxx" autocomplete="off">
-
         <label>
           Client ID
           <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">(register app)</a>
         </label>
         <input type="text" name="twitch_client_id" placeholder="your app client_id">
+
+        <div id="login-status" class="login-status not-connected">Not connected</div>
+        <button type="button" id="login-btn" class="login-btn">Login with Twitch</button>
 
         <label>Channel Name (your Twitch username)</label>
         <input type="text" name="channel_name" placeholder="your_username">

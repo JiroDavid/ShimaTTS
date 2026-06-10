@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ShimaTTS - Twitch Login</title>
+  <style>
+    body {
+      background: #0d0d1a;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      text-align: center;
+      background: #13132a;
+      border: 1px solid #2a2a48;
+      border-radius: 16px;
+      padding: 40px 48px;
+      max-width: 400px;
+    }
+    h2 { color: #fff; margin-bottom: 10px; }
+    p  { color: #aaa; font-size: 14px; }
+    .success { color: #86efac; }
+    .error   { color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2 id="title">Connecting...</h2>
+    <p id="message">Please wait.</p>
+  </div>
+  <script>
+    const hash = window.location.hash.substring(1);
+    const params = Object.fromEntries(new URLSearchParams(hash));
+    const token = params['access_token'];
+
+    if (!token) {
+      document.getElementById('title').textContent = 'Login failed';
+      document.getElementById('title').className = 'error';
+      document.getElementById('message').textContent = 'No token received from Twitch.';
+    } else {
+      fetch('/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      .then(res => {
+        if (res.ok) {
+          document.getElementById('title').textContent = 'Connected!';
+          document.getElementById('title').className = 'success';
+          document.getElementById('message').textContent = 'You can close this tab and return to the config page.';
+        } else {
+          throw new Error('Save failed');
+        }
+      })
+      .catch(() => {
+        document.getElementById('title').textContent = 'Error';
+        document.getElementById('title').className = 'error';
+        document.getElementById('message').textContent = 'Could not save token. Is ShimaTTS still running?';
+      });
+    }
+  </script>
+</body>
+</html>

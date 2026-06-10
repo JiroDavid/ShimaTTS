@@ -94,3 +94,18 @@ button:hover { opacity: 0.88; }
 .status.success { background: #0d2a1a; border: 1px solid #22c55e; color: #86efac; }
 .status.error   { background: #2a0d0d; border: 1px solid #ef4444; color: #fca5a5; }
 .status.info    { background: #13132a; border: 1px solid #6366f1; color: #a5b4fc; }
+
+.login-btn {
+  background: #9146ff;
+  margin-top: 4px;
+}
+
+.login-status {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.login-status.connected    { background: #0d2a1a; border: 1px solid #22c55e; color: #86efac; }
+.login-status.not-connected { background: #2a1a0d; border: 1px solid #f97316; color: #fdba74; }

@@ -24,6 +24,22 @@ async def overlay():
     return (STATIC_DIR / "overlay.html").read_text()
 
 
+@app.get("/auth/callback", response_class=HTMLResponse)
+async def auth_callback():
+    return (STATIC_DIR / "auth_callback.html").read_text()
+
+
+@app.post("/auth/token")
+async def auth_token(data: dict = Body(...)):
+    token = data.get("token", "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="No token provided")
+    cfg = load_config()
+    cfg.twitch_token = token
+    save_config(cfg)
+    return {"status": "ok"}
+
+
 @app.get("/overlay-gif")
 async def overlay_gif():
     cfg = load_config()
