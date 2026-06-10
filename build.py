@@ -80,7 +80,7 @@ cmd = [
     "--exclude-module", "wandb",
     "--exclude-module", "datasets",
     "--exclude-module", "bitsandbytes",
-    "--exclude-module", "matplotlib",
+    "--collect-all", "matplotlib",
     "--exclude-module", "accelerate",
     "--exclude-module", "torchcodec",
     "--exclude-module", "transformers_stream_generator",

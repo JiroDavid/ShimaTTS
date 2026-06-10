@@ -38,3 +38,4 @@ tomli
 torchdiffeq
 tqdm>=4.65.0
 unidecode
+matplotlib
