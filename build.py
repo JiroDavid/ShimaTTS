@@ -25,6 +25,7 @@ cmd = [
     "--hidden-import", "sounddevice",
     "--hidden-import", "pystray",
     "--collect-all", "TTS",
+    "--collect-all", "better_profanity",
     "--paths", ".",
     str(ROOT / "src" / "main.py"),
 ]
