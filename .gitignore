@@ -1,0 +1,11 @@
+config.json
+*.log
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.spec
+.superpowers/
+models/

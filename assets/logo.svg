@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a1458"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <radialGradient id="blush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff6eb4" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ff6eb4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#ff6eb4" stroke-width="2.5"/>
+
+  <!-- Left ear -->
+  <polygon points="65,84 50,50 88,78" fill="#E07B2A"/>
+  <polygon points="67,80 57,57 84,76" fill="#C9472E"/>
+
+  <!-- Right ear -->
+  <polygon points="135,84 150,50 112,78" fill="#E07B2A"/>
+  <polygon points="133,80 143,57 116,76" fill="#C9472E"/>
+
+  <!-- Main head -->
+  <ellipse cx="100" cy="114" rx="53" ry="49" fill="#E07B2A"/>
+
+  <!-- White face -->
+  <ellipse cx="100" cy="121" rx="39" ry="34" fill="#FBE9CA"/>
+
+  <!-- Left eye -->
+  <circle cx="83" cy="107" r="8.5" fill="#1a0c04"/>
+  <circle cx="86" cy="103.5" r="2.8" fill="white" opacity="0.9"/>
+
+  <!-- Right eye -->
+  <circle cx="117" cy="107" r="8.5" fill="#1a0c04"/>
+  <circle cx="120" cy="103.5" r="2.8" fill="white" opacity="0.9"/>
+
+  <!-- Nose -->
+  <ellipse cx="100" cy="122" rx="7.5" ry="5.5" fill="#1a0c04"/>
+
+  <!-- Mouth -->
+  <path d="M91,129 Q100,137 109,129" stroke="#1a0c04" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Blush -->
+  <ellipse cx="69" cy="119" rx="12" ry="9" fill="url(#blush)"/>
+  <ellipse cx="131" cy="119" rx="12" ry="9" fill="url(#blush)"/>
+
+  <!-- Headphone band -->
+  <path d="M44,105 C44,53 156,53 156,105" stroke="#1e1e30" stroke-width="9" fill="none" stroke-linecap="round"/>
+
+  <!-- Left cup outer -->
+  <rect x="29" y="96" width="23" height="22" rx="7" fill="#1e1e30"/>
+  <!-- Left cup inner -->
+  <rect x="33" y="100" width="15" height="14" rx="4" fill="#3a3a5c"/>
+
+  <!-- Right cup outer -->
+  <rect x="148" y="96" width="23" height="22" rx="7" fill="#1e1e30"/>
+  <!-- Right cup inner -->
+  <rect x="152" y="100" width="15" height="14" rx="4" fill="#3a3a5c"/>
+
+  <!-- Sound waves -->
+  <path d="M174,99 Q181,108 174,117" stroke="#ff6eb4" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <path d="M179,93 Q189,108 179,123" stroke="#ff6eb4" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.55"/>
+</svg>
