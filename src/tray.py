@@ -57,7 +57,11 @@ class TrayApp:
         webbrowser.open(self.config_url)
 
     def _view_logs(self, icon=None, item=None) -> None:
-        os.startfile(self.log_path)
+        if hasattr(os, 'startfile'):
+            os.startfile(self.log_path)
+        else:
+            import subprocess
+            subprocess.Popen(["xdg-open", self.log_path])
 
     def _exit(self, icon=None, item=None) -> None:
         if self._icon:
