@@ -152,6 +152,13 @@ def main() -> None:
             overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
         )
         server = uvicorn.Server(server_cfg)
+        tray = TrayApp(
+            config_url=f"http://localhost:{cfg.port}/config",
+            log_path=str(LOG_PATH),
+            on_exit=lambda: os._exit(0),
+        )
+        tray_thread = threading.Thread(target=tray.run, daemon=True)
+        tray_thread.start()
         _open_config_after_delay(f"http://localhost:{cfg.port}/config")
         asyncio.run(server.serve())
         return
