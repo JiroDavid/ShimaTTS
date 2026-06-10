@@ -15,6 +15,8 @@ def get_wav_duration_ms(wav_path: str) -> int:
 
 
 def play_wav(wav_path: str) -> None:
+    if sd is None:
+        raise RuntimeError("sounddevice not available (PortAudio not installed)")
     with wave.open(wav_path, "r") as f:
         rate = f.getframerate()
         channels = f.getnchannels()

@@ -45,7 +45,7 @@ async def _run_test_tts(message: str, cfg: Config) -> None:
     wav = tts_module.generate(message, cfg.voice_sample)
     from src.audio import play_wav
     logger.info("Playing: %s", message)
-    play_wav(wav)
+    await asyncio.get_running_loop().run_in_executor(None, play_wav, wav)
     os.unlink(wav)
 
 

@@ -56,7 +56,10 @@ async def config_data():
 @app.post("/config/save")
 async def config_save(data: dict = Body(...)):
     valid_keys = Config.__dataclass_fields__.keys()
-    cfg = Config(**{k: v for k, v in data.items() if k in valid_keys})
+    try:
+        cfg = Config(**{k: v for k, v in data.items() if k in valid_keys})
+    except (TypeError, ValueError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
     save_config(cfg)
     return {"status": "saved"}
 
