@@ -45,6 +45,7 @@ cmd = [
     "--collect-all", "rjieba",
     "--collect-all", "librosa",
     "--collect-all", "cached_path",
+    "--collect-all", "huggingface_hub",
     "--collect-all", "omegaconf",
     "--collect-all", "torchdiffeq",
     "--collect-all", "unidecode",
