@@ -40,3 +40,4 @@ tqdm>=4.65.0
 unidecode
 matplotlib
 huggingface-hub>=0.20.0
+scipy

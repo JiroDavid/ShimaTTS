@@ -87,6 +87,10 @@ cmd = [
     "--exclude-module", "transformers_stream_generator",
     "--exclude-module", "numba",
     "--exclude-module", "llvmlite",
+    # Runtime hook: stubs out training-only deps (accelerate, wandb, datasets)
+    # that f5_tts/model/__init__.py pulls in transitively via trainer.py/dataset.py
+    "--runtime-hook", str(ROOT / "hooks" / "rthook_f5tts_stubs.py"),
+    "--collect-all", "scipy",  # librosa native dependency
     "--paths", ".",
     str(ROOT / "src" / "main.py"),
 ]
