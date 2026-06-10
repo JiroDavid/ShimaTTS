@@ -4,14 +4,11 @@ from unittest.mock import MagicMock, patch
 
 
 def test_generate_calls_tts_to_file(tmp_path):
+    import src.tts as tts_mod
     mock_tts_instance = MagicMock()
-    mock_tts_instance.tts_to_file.return_value = None
-
-    with patch("src.tts._tts", mock_tts_instance):
-        import src.tts as tts_mod
-        tts_mod._tts = mock_tts_instance
-
-        out_wav = str(tmp_path / "out.wav")
+    original = tts_mod._tts
+    tts_mod._tts = mock_tts_instance
+    try:
         def fake_tts_to_file(**kwargs):
             open(kwargs["file_path"], "w").close()
         mock_tts_instance.tts_to_file.side_effect = fake_tts_to_file
@@ -25,6 +22,8 @@ def test_generate_calls_tts_to_file(tmp_path):
         assert call_kwargs["text"] == "hello world"
         assert call_kwargs["speaker_wav"] == "/voice.wav"
         assert call_kwargs["language"] == "en"
+    finally:
+        tts_mod._tts = original
 
 
 def test_generate_raises_when_model_not_loaded():

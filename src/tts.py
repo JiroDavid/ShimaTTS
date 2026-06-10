@@ -42,12 +42,19 @@ def generate(text: str, voice_sample: str) -> str:
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         out_path = f.name
 
-    _tts.tts_to_file(
-        text=text,
-        speaker_wav=voice_sample,
-        language="en",
-        file_path=out_path,
-    )
+    try:
+        _tts.tts_to_file(
+            text=text,
+            speaker_wav=voice_sample,
+            language="en",
+            file_path=out_path,
+        )
+    except Exception:
+        try:
+            os.unlink(out_path)
+        except OSError:
+            pass
+        raise
     return out_path
 
 
