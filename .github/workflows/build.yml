@@ -28,6 +28,9 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Install ffmpeg
+        run: choco install ffmpeg -y
+
       - name: Build exe
         run: python build.py
 
