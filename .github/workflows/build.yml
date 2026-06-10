@@ -46,14 +46,28 @@ jobs:
           Write-Host "ShimaTTS.zip size: $([math]::Round($size / 1MB, 1)) MB"
           if ($size -gt 2GB) { Write-Warning "File exceeds GitHub 2 GB upload limit!" }
 
-      - name: Upload to release
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
         run: |
-          gh release delete "$env:TAG" --yes --repo "$env:REPO" 2>$null
-          gh release create "$env:TAG" ShimaTTS.zip `
-            --title "$env:TAG" `
-            --generate-notes `
-            --repo "$env:REPO"
+          $ErrorActionPreference = 'Continue'
+          Write-Host "Deleting existing release if any..."
+          gh release delete "$env:TAG" --yes --repo "$env:REPO" 2>&1 | Write-Host
+          $LASTEXITCODE = 0
+
+          Write-Host "Creating release $env:TAG ..."
+          gh release create "$env:TAG" --title "$env:TAG" --notes "" --repo "$env:REPO" 2>&1 | Write-Host
+          if ($LASTEXITCODE -ne 0) { Write-Error "gh release create failed"; exit 1 }
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host "Uploading ShimaTTS.zip to release $env:TAG ..."
+          gh release upload "$env:TAG" ShimaTTS.zip --clobber --repo "$env:REPO" 2>&1 | Write-Host
+          if ($LASTEXITCODE -ne 0) { Write-Error "gh release upload failed"; exit 1 }
