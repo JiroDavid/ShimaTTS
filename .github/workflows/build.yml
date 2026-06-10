@@ -23,8 +23,8 @@ jobs:
       - name: Install ffmpeg
         uses: AnimMouse/setup-ffmpeg@ae28d57dabbb148eff63170b6bf7f2b60062cbae  # v1
 
-      - name: Install PyTorch with CUDA
-        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+      - name: Install PyTorch (CPU build for distribution)
+        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install f5-tts (inference deps only, skip gradio/wandb/datasets/etc)
         run: pip install f5-tts --no-deps
