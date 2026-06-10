@@ -25,13 +25,13 @@ if getattr(sys, 'frozen', False):
     pydub.AudioSegment.converter = str(_EXE_DIR / "ffmpeg.exe")
     pydub.AudioSegment.ffprobe = str(_EXE_DIR / "ffprobe.exe")
 
+_log_handlers: list[logging.Handler] = [logging.FileHandler(LOG_PATH, encoding="utf-8")]
+if sys.stdout is not None:
+    _log_handlers.append(logging.StreamHandler(sys.stdout))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_PATH, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout),
-    ],
+    handlers=_log_handlers,
 )
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ async def _run_test_tts(message: str, cfg: Config) -> None:
 
 
 async def _run_test_overlay(cfg: Config) -> None:
-    server_cfg = uvicorn.Config(overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning")
+    server_cfg = uvicorn.Config(overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None)
     server = uvicorn.Server(server_cfg)
 
     async def fire_after_start():
@@ -109,7 +109,7 @@ async def run_app(cfg: Config) -> None:
     )
 
     server_cfg = uvicorn.Config(
-        overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning"
+        overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
     )
     server = uvicorn.Server(server_cfg)
 
@@ -149,7 +149,7 @@ def main() -> None:
     if not cfg.is_complete():
         logger.info("Config incomplete - opening setup page.")
         server_cfg = uvicorn.Config(
-            overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning"
+            overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
         )
         server = uvicorn.Server(server_cfg)
         _open_config_after_delay(f"http://localhost:{cfg.port}/config")
