@@ -105,9 +105,13 @@ form.addEventListener('submit', async (e) => {
       body: JSON.stringify(data),
     });
     if (res.ok) {
+      const json = await res.json();
       document.getElementById('save-btn').textContent = 'Saved!';
       document.getElementById('saved-banner').classList.remove('hidden');
       document.getElementById('saved-banner').scrollIntoView({ behavior: 'smooth' });
+      if (json.complete) {
+        document.getElementById('saved-banner').textContent = 'Config saved - app is starting, you can close this tab.';
+      }
     } else {
       showStatus('Save failed - check the console.', 'error');
     }

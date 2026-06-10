@@ -16,6 +16,14 @@ logger = logging.getLogger(__name__)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
+# Set by main.py during setup-only mode so the save handler can signal exit
+_setup_server = None
+
+
+def set_setup_server(server) -> None:
+    global _setup_server
+    _setup_server = server
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -123,7 +131,10 @@ async def config_save(data: dict = Body(...)):
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=422, detail=str(e))
     save_config(cfg)
-    return {"status": "saved"}
+    complete = cfg.is_complete()
+    if complete and _setup_server is not None:
+        _setup_server.should_exit = True
+    return {"status": "saved", "complete": complete}
 
 
 @app.websocket("/ws")

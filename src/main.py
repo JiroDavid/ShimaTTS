@@ -13,7 +13,7 @@ import uvicorn
 from src.config import Config, load_config, save_config
 from src.queue_manager import QueueManager
 from src.twitch import TwitchListener
-from src.overlay.server import app as overlay_app, broadcast
+from src.overlay.server import app as overlay_app, broadcast, set_setup_server
 from src.tray import TrayApp
 import src.tts as tts_module
 
@@ -146,12 +146,13 @@ def main() -> None:
         asyncio.run(_run_test_twitch(cfg))
         return
 
-    if not cfg.is_complete():
+    while not cfg.is_complete():
         logger.info("Config incomplete - opening setup page.")
         server_cfg = uvicorn.Config(
             overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
         )
         server = uvicorn.Server(server_cfg)
+        set_setup_server(server)
         tray = TrayApp(
             config_url=f"http://localhost:{cfg.port}/config",
             log_path=str(LOG_PATH),
@@ -161,7 +162,8 @@ def main() -> None:
         tray_thread.start()
         _open_config_after_delay(f"http://localhost:{cfg.port}/config")
         asyncio.run(server.serve())
-        return
+        set_setup_server(None)
+        cfg = load_config()
 
     asyncio.run(run_app(cfg))
 
