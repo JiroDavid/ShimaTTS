@@ -31,7 +31,7 @@ cmd = [
     "--add-data", f"{ASSETS_DIR};assets",
     "--add-binary", f"{ffmpeg};.",
     "--add-binary", f"{ffprobe};.",
-    # Packages with data files / lazy imports that PyInstaller misses
+    # ML / TTS packages with data files or lazy imports PyInstaller misses
     "--collect-all", "f5_tts",
     "--collect-all", "vocos",
     "--collect-all", "soundfile",
@@ -48,23 +48,33 @@ cmd = [
     "--collect-all", "omegaconf",
     "--collect-all", "torchdiffeq",
     "--collect-all", "unidecode",
-    # Hidden imports for lazy-loaded backends
+    # Web / app packages with lazy backends or data files
+    "--collect-all", "anyio",           # starlette async backend (lazily imported)
+    "--collect-all", "pydantic",        # fastapi validation (native .pyd + lazy internals)
+    "--collect-all", "pydantic_core",   # pydantic V2 native extension
+    "--collect-all", "pystray",         # includes _win32 backend missed by --hidden-import
+    "--collect-all", "python_multipart", # fastapi file upload form parsing
+    "--collect-all", "certifi",         # requests CA bundle (data file)
+    "--collect-all", "h11",             # uvicorn HTTP/1.1 fallback parser
+    # Hidden imports for lazy-loaded backends not reachable by static analysis
     "--hidden-import", "torch",
     "--hidden-import", "torchaudio",
     "--hidden-import", "sounddevice",
-    "--hidden-import", "pystray",
     "--hidden-import", "pydub",
     "--hidden-import", "hydra",
     "--hidden-import", "safetensors",
+    "--hidden-import", "six",
     "--hidden-import", "uvicorn.logging",
     "--hidden-import", "uvicorn.loops.auto",
     "--hidden-import", "uvicorn.protocols.http.auto",
+    "--hidden-import", "uvicorn.protocols.http.h11_impl",
     "--hidden-import", "uvicorn.protocols.websockets.auto",
+    "--hidden-import", "uvicorn.protocols.websockets.websockets_impl",
     "--hidden-import", "uvicorn.lifespan.on",
     "--hidden-import", "fastapi",
     "--hidden-import", "websockets",
     "--hidden-import", "requests",
-    # Exclude heavy training/UI deps that f5-tts lists but we don't use at inference time
+    # Exclude heavy training/UI deps pulled in transitively by f5-tts
     "--exclude-module", "gradio",
     "--exclude-module", "gradio_client",
     "--exclude-module", "wandb",
