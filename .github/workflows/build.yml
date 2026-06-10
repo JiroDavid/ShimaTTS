@@ -40,9 +40,18 @@ jobs:
       - name: Zip dist folder
         run: Compress-Archive -Path dist\ShimaTTS -DestinationPath ShimaTTS.zip
 
+      - name: Show zip size
+        run: |
+          $size = (Get-Item ShimaTTS.zip).Length
+          Write-Host "ShimaTTS.zip size: $([math]::Round($size / 1MB, 1)) MB"
+          if ($size -gt 2GB) { Write-Warning "File exceeds GitHub 2 GB upload limit!" }
+
       - name: Upload to release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
-        with:
-          files: ShimaTTS.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete ${{ github.ref_name }} --yes --repo ${{ github.repository }} 2>$null
+          gh release create ${{ github.ref_name }} ShimaTTS.zip `
+            --title "${{ github.ref_name }}" `
+            --generate-notes `
+            --repo ${{ github.repository }}
