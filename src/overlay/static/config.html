@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ShimaTTS Config</title>
+  <link rel="stylesheet" href="/static/config.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/static/logo.svg" alt="ShimaTTS" width="56">
+      <div>
+        <h1>ShimaTTS</h1>
+        <p class="tagline">Local Twitch TTS alerts</p>
+      </div>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+
+    <form id="config-form">
+      <section>
+        <h2>Twitch</h2>
+        <label>
+          OAuth Token
+          <a href="https://twitchtokengenerator.com" target="_blank" rel="noopener">(get one)</a>
+        </label>
+        <input type="password" name="twitch_token" placeholder="oauth:xxxxxxxxxxxxxxxxxx" autocomplete="off">
+
+        <label>
+          Client ID
+          <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">(register app)</a>
+        </label>
+        <input type="text" name="twitch_client_id" placeholder="your app client_id">
+
+        <label>Channel Name (your Twitch username)</label>
+        <input type="text" name="channel_name" placeholder="your_username">
+
+        <label>Channel Point Reward Name (exact)</label>
+        <input type="text" name="reward_name" placeholder="TTS">
+      </section>
+
+      <section>
+        <h2>Voice</h2>
+        <label>Voice Sample Path (WAV or MP3, 10-30 seconds)</label>
+        <input type="text" name="voice_sample" placeholder="C:\Users\you\voice_sample.wav">
+      </section>
+
+      <section>
+        <h2>Overlay</h2>
+        <label>GIF Path</label>
+        <input type="text" name="overlay_gif" placeholder="C:\Users\you\shima.gif">
+      </section>
+
+      <section>
+        <h2>Settings</h2>
+        <label>Max Message Length</label>
+        <input type="number" name="max_message_length" value="200" min="10" max="500">
+
+        <label>Port</label>
+        <input type="number" name="port" value="7878">
+      </section>
+
+      <button type="submit">Save &amp; Start</button>
+    </form>
+  </div>
+  <script src="/static/config.js"></script>
+</body>
+</html>
