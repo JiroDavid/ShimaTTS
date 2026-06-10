@@ -41,7 +41,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--test-tts", metavar="MESSAGE", help="Generate and play TTS without Twitch")
     p.add_argument("--test-overlay", action="store_true", help="Fire a fake redemption in OBS")
     p.add_argument("--test-twitch", action="store_true", help="Connect and print redemptions without TTS")
-    p.add_argument("--tts-server", action="store_true", help=argparse.SUPPRESS)
     return p.parse_args()
 
 
@@ -128,11 +127,6 @@ def _open_config_after_delay(url: str, delay: float = 1.0) -> None:
 def main() -> None:
     args = parse_args()
     cfg = load_config()
-
-    if args.tts_server:
-        from src.tts_server import run as run_tts_server
-        run_tts_server()
-        return
 
     if args.test_tts:
         if not cfg.voice_sample:

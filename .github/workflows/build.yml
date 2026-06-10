@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install ffmpeg
+        uses: AnimMouse/setup-ffmpeg@v1
+
       - name: Install PyTorch with CUDA
         run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
 
@@ -27,9 +30,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pyinstaller
-
-      - name: Install ffmpeg
-        run: choco install ffmpeg -y
 
       - name: Build exe
         run: python build.py

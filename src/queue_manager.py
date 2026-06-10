@@ -4,6 +4,7 @@ import os
 from typing import Callable, Tuple
 
 from src.config import Config
+from src.filter import is_allowed
 import src.tts as tts_module
 import src.audio as audio
 
@@ -30,6 +31,9 @@ class QueueManager:
                 self._queue.task_done()
 
     async def _process(self, username: str, message: str) -> None:
+        if not is_allowed(message, self.config.max_message_length):
+            logger.info("Skipping filtered message from %s", username)
+            return
         loop = asyncio.get_running_loop()
         tts_text = f"{username} says {message}"
         wav_path = await loop.run_in_executor(
