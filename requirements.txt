@@ -1,5 +1,6 @@
-TTS>=0.22.0,<0.25.0
-transformers>=4.33.0,<4.40.0
+f5-tts>=0.3.0
+vocos>=0.1.0
+transformers>=4.33.0
 torch>=2.1.0,<3.0.0
 torchaudio>=2.1.0,<3.0.0
 fastapi>=0.110.0,<1.0.0
@@ -7,6 +8,8 @@ uvicorn>=0.29.0,<1.0.0
 websockets>=12.0,<14.0
 better-profanity>=0.7.0,<1.0.0
 sounddevice>=0.4.6,<1.0.0
+soundfile>=0.12.0
+pydub>=0.25.0
 numpy>=1.26.0,<3.0.0
 pystray>=0.19.5,<1.0.0
 Pillow>=10.2.0,<12.0.0
