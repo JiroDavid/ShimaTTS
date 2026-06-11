@@ -314,6 +314,18 @@ button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(211, 115, 3
 .login-btn:hover { background: #7d34ea; }
 .login-btn:active { box-shadow: 0 1px 0 #6c2fd0; }
 
+.logout-btn {
+  background: transparent;
+  border: 1.5px solid var(--red-border);
+  color: var(--red-deep);
+  box-shadow: none;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+}
+.logout-btn:hover { background: var(--red-wash); transform: none; }
+.logout-btn:active { box-shadow: none; transform: scale(0.97); }
+
 .auto-label { color: var(--faint); font-size: 11px; margin-left: 6px; font-weight: 600; }
 
 /* Setup guide */

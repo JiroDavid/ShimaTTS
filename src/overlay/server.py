@@ -23,10 +23,18 @@ STATIC_DIR = Path(__file__).parent / "static"
 # Set by main.py during setup-only mode so the save handler can signal exit
 _setup_server = None
 
+# Set by main.py while the full app is running so logout can signal a restart
+_app_server = None
+
 
 def set_setup_server(server) -> None:
     global _setup_server
     _setup_server = server
+
+
+def set_app_server(server) -> None:
+    global _app_server
+    _app_server = server
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -83,7 +91,35 @@ async def auth_token(data: dict = Body(...)):
         except Exception:
             logger.exception("Twitch user lookup failed")
     save_config(cfg)
+    # Re-login with the rest of the config already filled in: skip the
+    # setup screen and go straight back to running mode
+    if cfg.is_complete() and _setup_server is not None:
+        _setup_server.should_exit = True
     return {"status": "ok", "channel_name": cfg.channel_name}
+
+
+@app.post("/auth/logout")
+async def auth_logout():
+    cfg = load_config()
+    token = cfg.twitch_token
+    if token:
+        try:
+            await asyncio.to_thread(
+                req.post,
+                "https://id.twitch.tv/oauth2/revoke",
+                data={"client_id": cfg.client_id, "token": token},
+                timeout=5,
+            )
+        except Exception:
+            logger.exception("Twitch token revoke failed - clearing it locally anyway")
+    cfg.twitch_token = ""
+    save_config(cfg)
+    logger.info("Logged out of Twitch")
+    # The running listener still holds the revoked token in memory: exit the
+    # app server so the supervisor drops back into setup mode
+    if _app_server is not None:
+        _app_server.should_exit = True
+    return {"status": "logged_out"}
 
 
 def _data_dir() -> Path:

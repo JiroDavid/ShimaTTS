@@ -101,6 +101,52 @@ async def test_broadcast_sends_to_websocket():
     assert sent[0]["duration_ms"] == 2000
 
 
+@pytest.mark.asyncio
+async def test_logout_revokes_and_clears_token(basic_config):
+    from src.overlay.server import app
+    with patch("src.overlay.server.load_config", return_value=basic_config), \
+         patch("src.overlay.server.save_config") as mock_save, \
+         patch("src.overlay.server.req.post") as mock_post:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/auth/logout")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "logged_out"
+    mock_post.assert_called_once()
+    assert mock_post.call_args.kwargs["data"]["token"] == "test_token"
+    saved = mock_save.call_args.args[0]
+    assert saved.twitch_token == ""
+    assert saved.channel_name == "testchannel"
+
+
+@pytest.mark.asyncio
+async def test_logout_clears_token_when_revoke_fails(basic_config):
+    from src.overlay.server import app
+    with patch("src.overlay.server.load_config", return_value=basic_config), \
+         patch("src.overlay.server.save_config") as mock_save, \
+         patch("src.overlay.server.req.post", side_effect=ConnectionError("offline")):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/auth/logout")
+    assert resp.status_code == 200
+    assert mock_save.call_args.args[0].twitch_token == ""
+
+
+@pytest.mark.asyncio
+async def test_logout_signals_app_server_restart(basic_config):
+    from src.overlay.server import app, set_app_server
+    fake_server = MagicMock(should_exit=False)
+    set_app_server(fake_server)
+    try:
+        with patch("src.overlay.server.load_config", return_value=basic_config), \
+             patch("src.overlay.server.save_config"), \
+             patch("src.overlay.server.req.post"):
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+                resp = await client.post("/auth/logout")
+    finally:
+        set_app_server(None)
+    assert resp.status_code == 200
+    assert fake_server.should_exit is True
+
+
 @pytest.fixture
 def data_dir(tmp_path):
     with patch("src.overlay.server._data_dir", return_value=tmp_path):

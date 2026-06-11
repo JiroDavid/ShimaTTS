@@ -13,7 +13,7 @@ import uvicorn
 from src.config import Config, app_home, load_config, save_config
 from src.queue_manager import QueueManager
 from src.twitch import TwitchListener
-from src.overlay.server import app as overlay_app, broadcast, set_setup_server
+from src.overlay.server import app as overlay_app, broadcast, set_app_server, set_setup_server
 from src.tray import TrayApp
 import src.tts as tts_module
 
@@ -138,6 +138,7 @@ async def run_app(cfg: Config, tray: TrayApp) -> None:
         overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
     )
     server = uvicorn.Server(server_cfg)
+    set_app_server(server)
 
     async def model_then_twitch():
         loop = asyncio.get_running_loop()
@@ -149,7 +150,22 @@ async def run_app(cfg: Config, tray: TrayApp) -> None:
         await asyncio.gather(listener.run(), queue_mgr.run())
 
     logger.info("ShimaTTS running on http://localhost:%d", cfg.port)
-    await asyncio.gather(server.serve(), model_then_twitch())
+    worker = asyncio.create_task(model_then_twitch())
+    # If the Twitch/TTS side dies, stop serving so the failure surfaces here
+    worker.add_done_callback(lambda t: setattr(server, "should_exit", True))
+    try:
+        await server.serve()
+    finally:
+        set_app_server(None)
+    if worker.done():
+        worker.result()
+    else:
+        # Logout: drop the listener that still holds the revoked token
+        worker.cancel()
+        try:
+            await worker
+        except asyncio.CancelledError:
+            pass
 
 
 def _open_config_after_delay(url: str, delay: float = 1.0) -> None:
@@ -160,9 +176,14 @@ def _open_config_after_delay(url: str, delay: float = 1.0) -> None:
 
 
 def _supervisor(tray: TrayApp, open_browser: bool) -> None:
-    cfg = load_config()
     opened = False
-    while not cfg.is_complete():
+    while True:
+        cfg = load_config()
+        if cfg.is_complete():
+            asyncio.run(run_app(cfg, tray))
+            logger.info("Logged out - returning to setup mode.")
+            tray.set_status("Logged out")
+            continue
         logger.info("Config incomplete - starting in setup mode.")
         server_cfg = uvicorn.Config(
             overlay_app, host="127.0.0.1", port=cfg.port, log_level="warning", log_config=None,
@@ -174,9 +195,6 @@ def _supervisor(tray: TrayApp, open_browser: bool) -> None:
             opened = True
         asyncio.run(server.serve())
         set_setup_server(None)
-        cfg = load_config()
-
-    asyncio.run(run_app(cfg, tray))
 
 
 _window_icon = None

@@ -86,11 +86,14 @@ function updateLoginStatus(token, channelName) {
     statusEl.className = 'login-status connected';
     btnEl.textContent = 'Re-login with Twitch';
     autoLabel.style.display = 'none';
+    $('logout-btn').classList.remove('hidden');
   } else {
     statusEl.textContent = 'Not connected';
     statusEl.className = 'login-status not-connected';
     btnEl.textContent = 'Login with Twitch';
     autoLabel.style.display = '';
+    $('logout-btn').classList.add('hidden');
+    $('avatar').classList.add('hidden');
   }
 }
 
@@ -106,9 +109,14 @@ $('login-btn').addEventListener('click', () => {
   window.open(url, '_blank');
 
   const poll = setInterval(async () => {
-    const res = await fetch('/config/data');
-    if (!res.ok) return;
-    const cfg = await res.json();
+    let cfg;
+    try {
+      const res = await fetch('/config/data');
+      if (!res.ok) return;
+      cfg = await res.json();
+    } catch (err) {
+      return; // server briefly down while switching setup/running mode
+    }
     if (cfg.twitch_token) {
       clearInterval(poll);
       $('twitch_token_hidden').value = cfg.twitch_token;
@@ -120,6 +128,24 @@ $('login-btn').addEventListener('click', () => {
       showStatus('Twitch connected!', 'success');
     }
   }, 1500);
+});
+
+$('logout-btn').addEventListener('click', async () => {
+  if (!confirm('Logout of Twitch? TTS alerts will stop until you log back in.')) return;
+  try {
+    const res = await fetch('/auth/logout', { method: 'POST' });
+    if (!res.ok) {
+      showStatus('Logout failed - check the log.', 'error');
+      return;
+    }
+  } catch (err) {
+    showStatus('Logout error: ' + err.message, 'error');
+    return;
+  }
+  $('twitch_token_hidden').value = '';
+  updateLoginStatus('', '');
+  updateTestSection(false, '');
+  showStatus('Logged out of Twitch. Login again whenever you\'re ready.', 'success');
 });
 
 // --- File libraries ---
