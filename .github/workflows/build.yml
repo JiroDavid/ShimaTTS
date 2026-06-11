@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,42 +20,43 @@ jobs:
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install ffmpeg
         uses: AnimMouse/setup-ffmpeg@ae28d57dabbb148eff63170b6bf7f2b60062cbae  # v1
 
-      - name: Install PyTorch (CPU build for distribution)
-        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+      - name: Install PyInstaller
+        run: pip install "pyinstaller>=6.5.0,<7.0.0"
 
-      - name: Install f5-tts (inference deps only, skip gradio/wandb/datasets/etc)
-        run: pip install f5-tts --no-deps
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      - name: Build exe
+      - name: Build distribution (launcher only - app deps install on user machines)
         run: python build.py
 
-      - name: Show dist folder size
-        run: |
-          $distSize = (Get-ChildItem -Recurse dist\ShimaTTS | Measure-Object -Property Length -Sum).Sum
-          Write-Host "dist/ShimaTTS uncompressed: $([math]::Round($distSize / 1MB, 1)) MB"
-          Write-Host "--- largest files ---"
-          Get-ChildItem -Recurse dist\ShimaTTS | Sort-Object Length -Descending | Select-Object -First 20 |
-            ForEach-Object { Write-Host "$([math]::Round($_.Length / 1MB, 1)) MB  $($_.FullName.Replace((Get-Location).Path + '\dist\ShimaTTS\', ''))" }
-
-      - name: Zip dist folder
+      - name: Zip dist folder (before provisioning so the zip stays clean)
         run: Compress-Archive -Path dist\ShimaTTS -DestinationPath ShimaTTS.zip
 
-      - name: Show zip size
+      - name: Provision runtime (CPU torch) and smoke test the real artifact
         run: |
+          $env:SHIMA_TORCH_INDEX = 'https://download.pytorch.org/whl/cpu'
+          $p = Start-Process -FilePath .\dist\ShimaTTS\ShimaTTS.exe -ArgumentList '--provision-only' -Wait -PassThru
+          Write-Host "--- launcher.log ---"
+          Get-Content .\dist\ShimaTTS\launcher.log -Tail 40 -ErrorAction SilentlyContinue | Write-Host
+          if ($p.ExitCode -ne 0) { Write-Error "Provisioning failed (exit $($p.ExitCode))"; exit 1 }
+
+          $p2 = Start-Process -FilePath .\dist\ShimaTTS\ShimaTTS.exe -ArgumentList '--smoke' -Wait -PassThru
+          Write-Host "--- ShimaTTS.log ---"
+          Get-Content .\dist\ShimaTTS\ShimaTTS.log -ErrorAction SilentlyContinue | Write-Host
+          if ($p2.ExitCode -ne 0) { Write-Error "Smoke test failed (exit $($p2.ExitCode))"; exit 1 }
+
+      - name: Show sizes
+        run: |
+          $distSize = (Get-ChildItem -Recurse dist\ShimaTTS | Measure-Object -Property Length -Sum).Sum
+          Write-Host "dist/ShimaTTS (incl. test runtime): $([math]::Round($distSize / 1MB, 1)) MB"
           $size = (Get-Item ShimaTTS.zip).Length
           Write-Host "ShimaTTS.zip size: $([math]::Round($size / 1MB, 1)) MB"
-          if ($size -gt 2048MB) { Write-Error "File exceeds GitHub 2 GB upload limit — trim the bundle"; exit 1 }
+          if ($size -gt 2048MB) { Write-Error "File exceeds GitHub 2 GB upload limit - trim the bundle"; exit 1 }
 
       - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
@@ -70,6 +72,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Error "gh release create failed"; exit 1 }
 
       - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}

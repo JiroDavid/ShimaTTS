@@ -17,6 +17,8 @@ def load_model(progress_callback: Optional[Callable[[str], None]] = None) -> Non
         if _model is not None:
             return
 
+        from src.f5tts_stubs import install as _install_stubs
+        _install_stubs()
         from f5_tts.api import F5TTS
         import torch
 
