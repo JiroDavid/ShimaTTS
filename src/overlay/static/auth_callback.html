@@ -5,9 +5,9 @@
   <title>ShimaTTS - Twitch Login</title>
   <style>
     body {
-      background: #0d0d1a;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #fdf3e2;
+      color: #4a3526;
+      font-family: 'Nunito', 'Trebuchet MS', 'Segoe UI', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -16,16 +16,17 @@
     }
     .box {
       text-align: center;
-      background: #13132a;
-      border: 1px solid #2a2a48;
-      border-radius: 16px;
+      background: #fffdf8;
+      border: 1.5px solid #f2dfc3;
+      border-radius: 22px;
+      box-shadow: 0 5px 16px rgba(173, 122, 66, 0.12);
       padding: 40px 48px;
-      max-width: 400px;
+      max-width: 420px;
     }
-    h2 { color: #fff; margin-bottom: 10px; }
-    p  { color: #aaa; font-size: 14px; }
-    .success { color: #86efac; }
-    .error   { color: #fca5a5; }
+    h2 { color: #d3731f; margin-bottom: 10px; font-family: 'Baloo 2', 'Comic Sans MS', 'Trebuchet MS', sans-serif; }
+    p  { color: #8c715a; font-size: 14px; font-weight: 600; }
+    .success { color: #3d8a52; }
+    .error   { color: #c05242; }
   </style>
 </head>
 <body>
@@ -37,7 +38,8 @@
     const hash = window.location.hash.substring(1);
     const params = Object.fromEntries(new URLSearchParams(hash));
     const token = params['access_token'];
-    const clientId = decodeURIComponent(new URLSearchParams(window.location.search).get('state') || '');
+    // Twitch's implicit grant echoes state in the fragment, not the query string
+    const clientId = params['state'] || '';
 
     if (!token) {
       document.getElementById('title').textContent = 'Login failed';
@@ -53,7 +55,7 @@
         if (res.ok) {
           document.getElementById('title').textContent = 'Connected!';
           document.getElementById('title').className = 'success';
-          document.getElementById('message').textContent = 'You can close this tab and return to the config page.';
+          document.getElementById('message').textContent = 'You can close this tab and head back to ShimaTTS.';
         } else {
           throw new Error('Save failed');
         }

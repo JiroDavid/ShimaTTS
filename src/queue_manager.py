@@ -3,6 +3,8 @@ import logging
 import os
 from typing import Callable, Tuple
 
+DEFAULT_TTS_TEMPLATE = "{username} says {message}"
+
 from src.config import Config
 from src.filter import is_allowed
 import src.tts as tts_module
@@ -31,11 +33,14 @@ class QueueManager:
                 self._queue.task_done()
 
     async def _process(self, username: str, message: str) -> None:
-        if not is_allowed(message, self.config.max_message_length):
+        if not is_allowed(message, self.config.max_message_words, self.config.blocked_words):
             logger.info("Skipping filtered message from %s", username)
             return
         loop = asyncio.get_running_loop()
-        tts_text = f"{username} says {message}"
+        template = self.config.tts_template or DEFAULT_TTS_TEMPLATE
+        if "{message}" not in template:
+            template = DEFAULT_TTS_TEMPLATE
+        tts_text = template.replace("{username}", username).replace("{message}", message)
         wav_path = await loop.run_in_executor(
             None, tts_module.generate, tts_text, self.config.voice_sample, self.config.voice_sample_text
         )

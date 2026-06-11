@@ -3,13 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>ShimaTTS Overlay</title>
-  <link rel="stylesheet" href="/static/overlay.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/overlay.css?v=3">
 </head>
 <body>
   <div id="alert" class="alert hidden">
     <img id="gif" src="/overlay-gif" alt="">
-    <div id="username"></div>
-    <div id="message"></div>
+    <div class="text">
+      <div id="username"></div>
+      <div id="message"></div>
+    </div>
   </div>
   <script src="/static/overlay.js"></script>
 </body>

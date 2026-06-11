@@ -2,79 +2,187 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ShimaTTS Config</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShimaTTS</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem('shima-theme') || 'dark';</script>
+  <link rel="icon" href="/static/icon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/config.css">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <img src="/static/logo.svg" alt="ShimaTTS" width="56">
-      <div>
-        <h1>ShimaTTS</h1>
-        <p class="tagline">Local Twitch TTS alerts</p>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <img src="/static/logo.svg" alt="ShimaTTS" width="46" height="46">
+        <div>
+          <h1>ShimaTTS <span class="byline">&middot; made by Jiro David</span></h1>
+          <p class="tagline">Local Twitch TTS alerts</p>
+        </div>
       </div>
-    </div>
+      <div class="topbar-actions">
+        <label class="toggle-row theme-toggle" title="Toggle dark mode">
+          <span class="theme-ico">☀️</span>
+          <input type="checkbox" id="theme-toggle">
+          <span class="toggle-slider"></span>
+          <span class="theme-ico">🌙</span>
+        </label>
+        <div class="account">
+          <img id="avatar" class="avatar hidden" alt="" width="34" height="34">
+          <div id="login-status" class="login-status not-connected">Not connected</div>
+        </div>
+        <button type="submit" form="config-form" id="save-btn" class="save-btn">Save &amp; Start</button>
+        <button type="button" id="quit-btn" class="quit-btn" title="Quit ShimaTTS">Quit</button>
+      </div>
+    </header>
 
     <div id="status" class="status hidden"></div>
 
-    <form id="config-form">
+    <details class="guide" id="setup-guide">
+      <summary>How to set up ShimaTTS</summary>
+      <ol>
+        <li><strong>Login with Twitch</strong> - your channel name fills in automatically.</li>
+        <li><strong>Create a channel point reward</strong> on Twitch: Creator Dashboard &rarr; Viewer Rewards &rarr; Channel Points &rarr; Manage Rewards &amp; Challenges &rarr; Add New Custom Reward. Turn on <em>"Require Viewer to Enter Text"</em> - that text is what gets spoken. Then enter the exact same reward name in this app.</li>
+        <li><strong>Upload a voice sample</strong> - 10 to 30 seconds of clear speech (WAV or MP3), no music or background noise. Select it in the Voice library.</li>
+        <li><strong>Upload an alert GIF</strong> and select it in the Overlay library.</li>
+        <li><strong>Add the overlay to OBS</strong>: Sources &rarr; + &rarr; Browser, URL <code>http://localhost:7878/overlay</code>, Width <code>1260</code>, Height <code>260</code>, and enable <em>"Refresh browser when scene becomes active"</em>. The alert fills the source exactly - drag it wherever you want the alert to appear. Background stays transparent between alerts.</li>
+        <li>Hit <strong>Save &amp; Start</strong>, then redeem your reward on stream to test!</li>
+      </ol>
+    </details>
+
+    <form id="config-form" class="grid">
       <input type="hidden" name="twitch_token" id="twitch_token_hidden">
+      <input type="hidden" name="voice_sample" id="voice_sample_hidden">
+      <input type="hidden" name="overlay_gif" id="overlay_gif_hidden">
 
-      <section>
-        <h2>Twitch</h2>
-        <label>
-          Client ID
-          <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">(register app)</a>
-        </label>
-        <input type="text" name="twitch_client_id" placeholder="your app client_id">
+      <div class="col col-side">
+        <section>
+          <h2>Twitch</h2>
+          <p class="section-sub">Connect your account and pick which reward triggers TTS</p>
 
-        <div id="login-status" class="login-status not-connected">Not connected</div>
-        <button type="button" id="login-btn" class="login-btn">Login with Twitch</button>
+          <button type="button" id="login-btn" class="login-btn">Login with Twitch</button>
+          <div class="req-msg hidden" id="err-twitch_token">Please login with Twitch first</div>
 
-        <label>Channel Name <span class="auto-label" id="channel-auto-label">(auto-filled after login)</span></label>
-        <input type="text" name="channel_name" placeholder="your_username">
+          <label>Channel Name<span class="req">*</span> <span class="auto-label" id="channel-auto-label">(auto-filled after login)</span></label>
+          <input type="text" name="channel_name" placeholder="your_username" autocomplete="off">
+          <div class="req-msg hidden" id="err-channel_name">Please fill this in</div>
 
-        <label>Channel Point Reward Name (exact)</label>
-        <input type="text" name="reward_name" placeholder="TTS">
-      </section>
+          <div class="field-help">
+            On Twitch, create a channel point reward with <strong>"Require Viewer to Enter Text"</strong> enabled
+            (Creator Dashboard &rarr; Viewer Rewards &rarr; Channel Points &rarr; Manage Rewards &amp; Challenges).
+            The name below must match the reward name exactly.
+          </div>
+          <label>Channel Point Reward Name<span class="req">*</span> <span class="auto-label">(must match exactly)</span></label>
+          <input type="text" name="reward_name" placeholder="TTS" autocomplete="off">
+          <div class="req-msg hidden" id="err-reward_name">Please fill this in</div>
+        </section>
 
-      <section>
-        <h2>Voice</h2>
-        <label>Voice Sample (WAV or MP3, 10-30 seconds)</label>
-        <div class="file-row">
-          <input type="text" name="voice_sample" id="voice_path" placeholder="C:\Users\you\voice_sample.wav">
-          <label class="file-pick-btn" for="voice_pick">Browse</label>
-          <input type="file" id="voice_pick" accept=".wav,.mp3">
-        </div>
-        <label>Voice Sample Transcript <span class="auto-label">(what is said in the sample - improves quality)</span></label>
-        <input type="text" name="voice_sample_text" placeholder="Exact words spoken in the voice sample">
-      </section>
+        <section>
+          <h2>Moderation</h2>
+          <p class="section-sub">Keep messages short and clean - slurs are always blocked</p>
 
-      <section>
-        <h2>Overlay</h2>
-        <label>Alert GIF</label>
-        <div class="file-row">
-          <input type="text" name="overlay_gif" id="gif_path" placeholder="C:\Users\you\shima.gif">
-          <label class="file-pick-btn" for="gif_pick">Browse</label>
-          <input type="file" id="gif_pick" accept=".gif">
-        </div>
-      </section>
+          <label>Max Message Length <span class="auto-label">(in words)</span></label>
+          <input type="number" name="max_message_words" value="20" min="1" max="100">
 
-      <section>
-        <h2>Settings</h2>
-        <label>Max Message Length</label>
-        <input type="number" name="max_message_length" value="200" min="10" max="500">
+          <label>Blocked Words <span class="auto-label">(type a word and press Enter - messages containing it are skipped)</span></label>
+          <div class="chips-box" id="chips-box">
+            <input type="text" id="chip-input" placeholder="add word..." autocomplete="off">
+          </div>
+          <div class="chips" id="chips"></div>
+        </section>
+      </div>
 
-        <label>Port</label>
-        <input type="number" name="port" value="7878">
-      </section>
+      <div class="col col-main">
+        <section>
+          <h2>Voice</h2>
+          <p class="section-sub">The cloned voice your alerts speak in</p>
 
-      <button type="submit" id="save-btn">Save &amp; Start</button>
+          <div class="viz viz-voice" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <div class="lib-head">
+            <span class="lib-hint">Upload samples, then click one to use it</span>
+            <label class="file-pick-btn" for="voice_upload">Upload WAV / MP3</label>
+            <input type="file" id="voice_upload" accept=".wav,.mp3">
+          </div>
+          <div id="voice-gallery" class="voice-gallery"></div>
+          <div class="req-msg hidden" id="err-voice_sample">Please upload and select a voice sample</div>
+          <div id="voice-external" class="external-note hidden"></div>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="prefix-toggle">
+            <span class="toggle-slider"></span>
+            Custom prefix
+          </label>
+          <div id="prefix-fields" class="hidden">
+            <div class="field-help">
+              Controls how messages are spoken. Use <code>{username}</code> and <code>{message}</code> as placeholders -
+              <code>{message}</code> is required. Default: <code>{username} says {message}</code>.
+              Examples: <code>Message from {username}: {message}</code> &middot; <code>{message}</code> (no prefix at all).
+            </div>
+            <input type="text" name="tts_template" placeholder="{username} says {message}" autocomplete="off">
+          </div>
+        </section>
+
+        <section>
+          <h2>Overlay</h2>
+          <p class="section-sub">The animation shown in OBS while a message plays</p>
+
+          <div class="viz viz-overlay" aria-hidden="true">
+            <div class="mini-screen">
+              <span class="mini-live"><span class="mini-dot"></span>LIVE</span>
+              <div class="mini-alert">
+                <span class="mini-gif">🐶</span>
+                <span class="mini-bubble"><b>viewer</b>&nbsp;says hi chat!</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lib-head">
+            <span class="lib-hint">Upload GIFs, then click one to use it</span>
+            <label class="file-pick-btn" for="gif_upload">Upload GIF</label>
+            <input type="file" id="gif_upload" accept=".gif">
+          </div>
+          <div id="gif-gallery" class="gif-gallery"></div>
+          <div class="req-msg hidden" id="err-overlay_gif">Please upload and select an alert GIF</div>
+          <div id="gif-external" class="external-note hidden"></div>
+        </section>
+      </div>
     </form>
+
+    <section class="test-section hidden" id="test-section">
+      <h2>Test &amp; Preview</h2>
+      <p class="section-sub">This is what your alert looks like in OBS - send a real test alert to check it on stream</p>
+
+      <div class="pv-stage">
+        <span class="mini-live"><span class="mini-dot"></span>LIVE</span>
+        <div class="pv-alert" id="pv-alert">
+          <img id="pv-gif" src="" alt="">
+          <div class="pv-text">
+            <div class="pv-username" id="pv-username">@you</div>
+            <div class="pv-message" id="pv-message">This is a test alert from ShimaTTS!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="test-actions">
+        <button type="button" class="file-pick-btn" id="replay-preview">Replay preview</button>
+        <button type="button" id="send-test-alert">Send Test Alert to OBS</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Running locally on <code>http://localhost:7878</code> &middot; overlay URL for OBS: <code>http://localhost:7878/overlay</code> &middot; lives in your system tray
+    </footer>
   </div>
 
   <div id="saved-banner" class="saved-banner hidden">
-    <span>&#10003;</span> ShimaTTS is running - close this tab and go stream!
+    <span>&#10003;</span> ShimaTTS is running - close this window and go stream!
   </div>
 
   <script src="/static/config.js"></script>

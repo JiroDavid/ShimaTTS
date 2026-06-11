@@ -68,12 +68,12 @@ class TwitchListener:
 
     async def run(self) -> None:
         self._running = True
-        broadcaster_id = get_broadcaster_id(
-            self.token, self.client_id, self.channel_name
-        )
         backoff = 1
         while self._running:
             try:
+                broadcaster_id = await asyncio.to_thread(
+                    get_broadcaster_id, self.token, self.client_id, self.channel_name
+                )
                 await self._connect(broadcaster_id)
                 backoff = 1
             except Exception as e:
