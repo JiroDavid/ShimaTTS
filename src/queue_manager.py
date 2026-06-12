@@ -6,7 +6,6 @@ from typing import Callable, Tuple
 DEFAULT_TTS_TEMPLATE = "{username} says {message}"
 
 from src.config import Config
-from src.filter import is_allowed
 import src.tts as tts_module
 import src.audio as audio
 
@@ -33,9 +32,6 @@ class QueueManager:
                 self._queue.task_done()
 
     async def _process(self, username: str, message: str) -> None:
-        if not is_allowed(message, self.config.max_message_words, self.config.blocked_words):
-            logger.info("Skipping filtered message from %s", username)
-            return
         loop = asyncio.get_running_loop()
         template = self.config.tts_template or DEFAULT_TTS_TEMPLATE
         if "{message}" not in template:

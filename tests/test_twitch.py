@@ -122,3 +122,64 @@ async def test_listener_ignores_wrong_reward_name():
             pass
 
     assert len(redemptions) == 0
+
+
+def _mock_ws(messages):
+    async def _aiter(self):
+        for m in messages:
+            yield m
+
+    ws = AsyncMock()
+    ws.__aiter__ = lambda self=None: _aiter(ws)
+    ws.__aenter__ = AsyncMock(return_value=ws)
+    ws.__aexit__ = AsyncMock(return_value=False)
+    return ws
+
+
+@pytest.mark.asyncio
+async def test_listener_follows_session_reconnect():
+    redemptions = []
+
+    listener = TwitchListener(
+        token="tok",
+        client_id="cid",
+        channel_name="chan",
+        reward_name="TTS",
+        on_redemption=lambda u, m: redemptions.append((u, m)),
+        on_status_change=lambda s: None,
+    )
+
+    first_ws = _mock_ws([
+        json.dumps({
+            "metadata": {"message_type": "session_welcome"},
+            "payload": {"session": {"id": "sess_1"}},
+        }),
+        json.dumps({
+            "metadata": {"message_type": "session_reconnect"},
+            "payload": {"session": {"reconnect_url": "wss://reconnect.example/ws"}},
+        }),
+    ])
+    second_ws = _mock_ws([
+        json.dumps({
+            "metadata": {"message_type": "session_welcome"},
+            "payload": {"session": {"id": "sess_2"}},
+        }),
+        json.dumps({
+            "metadata": {"message_type": "notification"},
+            "payload": {
+                "event": {
+                    "user_login": "viewer1",
+                    "user_input": "after reconnect",
+                    "reward": {"title": "TTS"},
+                }
+            },
+        }),
+    ])
+
+    with patch("src.twitch.subscribe_to_redemptions") as mock_sub, \
+         patch("src.twitch.websockets.connect", side_effect=[first_ws, second_ws]) as mock_connect:
+        await asyncio.wait_for(listener._connect("999"), timeout=1.0)
+
+    assert mock_connect.call_args_list[1].args[0] == "wss://reconnect.example/ws"
+    mock_sub.assert_called_once()
+    assert redemptions == [("viewer1", "after reconnect")]

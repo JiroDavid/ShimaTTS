@@ -15,12 +15,12 @@ The app runs as a single `.exe` (PyInstaller onedir bundle), sits in the system 
 
 ## Architecture
 
-One Python process with six internal components communicating via an in-process asyncio queue:
+One Python process with five internal components communicating via an in-process asyncio queue:
 
 ```
 Twitch EventSub (WebSocket)
         |
-   [Filter + Queue]
+   [Queue]
         |
    [TTS Generator]  <-- voice sample on disk
         |
@@ -39,17 +39,10 @@ Twitch EventSub (WebSocket)
 
 - Connects to Twitch EventSub via WebSocket
 - Subscribes to `channel.channel_points_custom_reward_redemption.add` for the configured channel and reward name
-- On redemption: extracts `user_login` and `user_input`, passes to Filter
+- On redemption: extracts `user_login` and `user_input`, passes to the TTS queue
 - Auto-reconnects with exponential backoff on disconnect; tray icon turns yellow while reconnecting
 
-### 2. Filter
-
-- Rejects messages exceeding `max_message_length` (configurable, default 200 chars)
-- Checks against a TOS-tier blocklist using the `better-profanity` Python library (covers slurs and hate speech; does not flag adult language)
-- Silently drops filtered messages - no alert to viewer, no crash
-- Passes clean messages to the TTS queue
-
-### 3. TTS Generator
+### 2. TTS Generator
 
 - Engine: **XTTS v2** via the `TTS` library (Coqui fork)
 - Model stored in `%LOCALAPPDATA%\ShimaTTS\models\` (~1.8GB, downloaded on first run)
@@ -57,13 +50,13 @@ Twitch EventSub (WebSocket)
 - Runs inference on CUDA (RTX 3060, 12GB VRAM); falls back to CPU if CUDA unavailable
 - Output: WAV file in a temp directory, handed to Audio Player
 
-### 4. Audio Player
+### 3. Audio Player
 
 - Plays the generated WAV using `pygame.mixer` or `sounddevice`
 - Sends a WebSocket message to the Overlay Server at audio start: `{ "username", "message", "duration_ms" }`
 - Waits for playback to complete before dequeuing the next item (enforcing sequential queue)
 
-### 5. Overlay Server
+### 4. Overlay Server
 
 - FastAPI app serving two routes:
   - `GET /overlay` - serves the transparent HTML/JS/CSS overlay page
@@ -75,7 +68,7 @@ Twitch EventSub (WebSocket)
   - On event: animates in (GIF + username + message, stacked vertical), stays for `duration_ms`, fades out
   - Layout: GIF centered on top, username in accent color, message text below
 
-### 6. System Tray
+### 5. System Tray
 
 - `pystray` tray icon with status colors: green (connected), yellow (reconnecting), red (error)
 - Right-click menu: Open Config, View Logs, Exit
@@ -87,12 +80,11 @@ Twitch EventSub (WebSocket)
 
 1. Viewer redeems reward on Twitch
 2. EventSub WebSocket fires → Twitch Listener receives event
-3. Filter checks length + blocklist
-4. If clean: `(username, message)` tuple pushed to asyncio queue
-5. TTS Generator picks up from queue, runs XTTS v2 inference (~1-3s on 3060)
-6. Audio Player sends overlay event via WebSocket, starts WAV playback
-7. OBS browser source receives event, GIF + text animates in and stays for duration
-8. Audio finishes → Audio Player signals queue → next item dequeues
+3. `(username, message)` tuple pushed to asyncio queue
+4. TTS Generator picks up from queue, runs XTTS v2 inference (~1-3s on 3060)
+5. Audio Player sends overlay event via WebSocket, starts WAV playback
+6. OBS browser source receives event, GIF + text animates in and stays for duration
+7. Audio finishes → Audio Player signals queue → next item dequeues
 
 ---
 
@@ -105,7 +97,6 @@ Twitch EventSub (WebSocket)
   "reward_name": "",
   "voice_sample": "",
   "overlay_gif": "",
-  "max_message_length": 200,
   "port": 7878
 }
 ```
@@ -130,7 +121,6 @@ Stored in the same directory as the exe. On first run, config page opens automat
 |---|---|
 | Twitch disconnect | Auto-reconnect with backoff, tray turns yellow |
 | TTS generation error | Skip item, log to `ShimaTTS.log`, continue queue |
-| Message filtered | Silent drop, no alert |
 | OBS not open | Overlay events drop after 30s timeout, app keeps running |
 | Model not downloaded | Queue blocks, progress shown in config page |
 

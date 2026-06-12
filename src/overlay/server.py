@@ -307,8 +307,6 @@ async def config_data():
         "voice_sample_text": cfg.voice_sample_text,
         "overlay_gif": cfg.overlay_gif,
         "tts_template": cfg.tts_template,
-        "max_message_words": cfg.max_message_words,
-        "blocked_words": cfg.blocked_words,
         "default_client_id": DEFAULT_TWITCH_CLIENT_ID,
     }
 

@@ -47,11 +47,25 @@ def generate(text: str, voice_sample: str, ref_text: str = "") -> str:
         gen_text=text,
         file_wave=out_path,
         target_rms=0.3,
-        nfe_step=64,
+        nfe_step=32,
         cfg_strength=2.0,
         speed=0.85,
     )
     return out_path
+
+
+def warmup(voice_sample: str, ref_text: str = "") -> None:
+    """First inference pays one-time costs that otherwise land on the first
+    redeem: CUDA kernel init, and - when no reference text is configured -
+    loading Whisper and transcribing the voice sample (F5-TTS caches both
+    per audio hash). Run it at startup so redeems only pay generation."""
+    logger.info("Warming up TTS (reference preprocessing + first inference)...")
+    wav_path = generate("Warm up.", voice_sample, ref_text)
+    try:
+        os.unlink(wav_path)
+    except OSError:
+        pass
+    logger.info("TTS warm.")
 
 
 def is_loaded() -> bool:

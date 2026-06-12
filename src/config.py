@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict
 from pathlib import Path
 
 # Client ID of the registered ShimaTTS Twitch app (public by design, like any
@@ -21,16 +21,10 @@ class Config:
     voice_sample_text: str = ""
     overlay_gif: str = ""
     tts_template: str = ""
-    max_message_words: int = 20
-    blocked_words: list = field(default_factory=list)
     port: int = 7878
 
     def __post_init__(self):
-        self.max_message_words = int(self.max_message_words)
         self.port = int(self.port)
-        self.blocked_words = [
-            str(w).strip().lower() for w in (self.blocked_words or []) if str(w).strip()
-        ]
         # Old builds persisted the built-in client id into config.json;
         # treat it as "not customized" so the UI keeps the field hidden
         if self.twitch_client_id == DEFAULT_TWITCH_CLIENT_ID:

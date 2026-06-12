@@ -26,7 +26,6 @@ Channel point redeems trigger an AI TTS alert in OBS. Your viewer types a messag
 - **Voice & GIF Libraries** - Upload, preview (built-in audio player / live GIF previews), and switch with a click
 - **Test & Preview** - See your alert in-app and fire real test alerts into OBS without spending channel points
 - **Custom Prefix** - Control how messages are spoken: `{username} says {message}` or anything you like
-- **Content Filtering** - Built-in slur blocklist, word-count cap, and your own custom blocked words
 - **TTS Queue** - Multiple redemptions play one at a time, no audio overlap
 - **System Tray** - Close the window and it keeps running quietly with live connection status
 
@@ -83,8 +82,6 @@ Settings are saved in `config.json` next to the exe. You can edit it directly or
 | `voice_sample_text` | Exact words spoken in the voice sample (improves quality) | - |
 | `overlay_gif` | Path to the GIF shown in the alert | - |
 | `tts_template` | How messages are spoken, e.g. `Message from {username}: {message}` | `{username} says {message}` |
-| `max_message_words` | Max words before a message is dropped | `20` |
-| `blocked_words` | Extra words that skip a message (managed in the app) | `[]` |
 | `port` | Local server port (config.json only, not exposed in the UI) | `7878` |
 
 Voice samples and GIFs uploaded through the app are stored in the `data/` folder next to the exe and can be previewed, switched, and deleted from the **File Library** section in the app.

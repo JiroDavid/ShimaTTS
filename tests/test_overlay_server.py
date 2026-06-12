@@ -37,8 +37,6 @@ async def test_config_data_returns_json(mock_config):
     assert resp.status_code == 200
     data = resp.json()
     assert data["channel_name"] == "testchannel"
-    assert data["max_message_words"] == 20
-    assert data["blocked_words"] == []
     assert data["twitch_client_id"] == "test_client_id"
 
 

@@ -1,6 +1,5 @@
 let defaultClientId = '';
 let customClientId = '';
-let blockedWords = [];
 let libraryFiles = [];
 
 const $ = id => document.getElementById(id);
@@ -46,16 +45,13 @@ async function loadConfig() {
   if (!res.ok) return;
   const cfg = await res.json();
 
-  ['channel_name', 'reward_name', 'max_message_words'].forEach(k => {
+  ['channel_name', 'reward_name'].forEach(k => {
     if (field(k) && cfg[k] !== undefined) field(k).value = cfg[k];
   });
   $('twitch_token_hidden').value = cfg.twitch_token || '';
   $('voice_sample_hidden').value = cfg.voice_sample || '';
   $('overlay_gif_hidden').value = cfg.overlay_gif || '';
   customClientId = cfg.twitch_client_id || '';
-
-  blockedWords = cfg.blocked_words || [];
-  renderChips();
 
   if (cfg.tts_template) {
     $('prefix-toggle').checked = true;
@@ -395,42 +391,6 @@ $('voice_upload').addEventListener('change', () =>
 $('gif_upload').addEventListener('change', () =>
   uploadTo('/upload/gif', $('gif_upload'), 'overlay_gif_hidden'));
 
-// --- Blocked words chips ---
-
-function renderChips() {
-  const box = $('chips');
-  box.innerHTML = '';
-  blockedWords.forEach(word => {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    const text = document.createElement('span');
-    text.textContent = word;
-    chip.appendChild(text);
-    const x = document.createElement('button');
-    x.type = 'button';
-    x.className = 'chip-x';
-    x.textContent = '×';
-    x.title = `Remove "${word}"`;
-    x.addEventListener('click', () => {
-      blockedWords = blockedWords.filter(w => w !== word);
-      renderChips();
-    });
-    chip.appendChild(x);
-    box.appendChild(chip);
-  });
-}
-
-$('chip-input').addEventListener('keydown', e => {
-  if (e.key !== 'Enter' && e.key !== ',') return;
-  e.preventDefault();
-  const word = $('chip-input').value.trim().toLowerCase();
-  if (word && !blockedWords.includes(word)) {
-    blockedWords.push(word);
-    renderChips();
-  }
-  $('chip-input').value = '';
-});
-
 // --- Required-field validation ---
 
 const REQUIRED = [
@@ -551,8 +511,6 @@ form.addEventListener('submit', async (e) => {
     voice_sample: $('voice_sample_hidden').value,
     overlay_gif: $('overlay_gif_hidden').value,
     tts_template: $('prefix-toggle').checked ? field('tts_template').value.trim() : '',
-    max_message_words: parseInt(field('max_message_words').value, 10) || 20,
-    blocked_words: blockedWords,
   };
 
   if (!validateRequired(data)) return;

@@ -49,7 +49,7 @@ _SMOKE_MODULES = (
     "torch", "torchaudio", "f5_tts.api", "vocos", "soundfile", "sounddevice",
     "pydub", "librosa", "transformers", "scipy", "matplotlib",
     "fastapi", "uvicorn", "websockets", "requests", "pystray", "PIL",
-    "tkinter", "tkinter.filedialog", "better_profanity",
+    "tkinter", "tkinter.filedialog",
 )
 
 
@@ -146,6 +146,12 @@ async def run_app(cfg: Config, tray: TrayApp) -> None:
         await loop.run_in_executor(
             None, lambda: tts_module.load_model(progress_callback=lambda m: logger.info("TTS: %s", m))
         )
+        try:
+            await loop.run_in_executor(
+                None, lambda: tts_module.warmup(cfg.voice_sample, cfg.voice_sample_text)
+            )
+        except Exception:
+            logger.exception("TTS warmup failed - first redeem will be slower")
         logger.info("Model ready.")
         await asyncio.gather(listener.run(), queue_mgr.run())
 

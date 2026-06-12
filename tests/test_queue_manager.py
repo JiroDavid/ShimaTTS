@@ -12,18 +12,7 @@ def cfg():
         twitch_token="t", twitch_client_id="c",
         channel_name="ch", reward_name="TTS",
         voice_sample="/voice.wav", overlay_gif="/gif.gif",
-        max_message_words=20,
     )
-
-
-@pytest.mark.asyncio
-async def test_process_skips_filtered_message(cfg):
-    qm = QueueManager(cfg, on_overlay_event=AsyncMock())
-    # 21 words exceeds max_message_words=20
-    with patch("src.queue_manager.tts_module.generate") as mock_gen:
-        await qm._process("viewer", "word " * 21)
-    mock_gen.assert_not_called()
-    qm.on_overlay_event.assert_not_awaited()
 
 
 @pytest.mark.asyncio

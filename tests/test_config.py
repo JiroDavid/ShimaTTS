@@ -8,15 +8,8 @@ from src.config import Config, load_config, save_config
 
 def test_config_defaults():
     cfg = Config()
-    assert cfg.max_message_words == 20
-    assert cfg.blocked_words == []
     assert cfg.port == 7878
     assert cfg.twitch_token == ""
-
-
-def test_blocked_words_normalized():
-    cfg = Config(blocked_words=["  Foo ", "BAR", "", "baz"])
-    assert cfg.blocked_words == ["foo", "bar", "baz"]
 
 
 def test_load_ignores_legacy_keys(tmp_path):
@@ -25,7 +18,6 @@ def test_load_ignores_legacy_keys(tmp_path):
     with patch("src.config.config_path", return_value=config_file):
         cfg = load_config()
     assert cfg.channel_name == "x"
-    assert cfg.max_message_words == 20
 
 
 def test_is_complete_false_when_fields_empty():
@@ -48,7 +40,7 @@ def test_load_returns_defaults_when_file_missing(tmp_path):
     with patch("src.config.config_path", return_value=tmp_path / "missing.json"):
         cfg = load_config()
     assert cfg.twitch_token == ""
-    assert cfg.max_message_words == 20
+    assert cfg.port == 7878
 
 
 def test_save_writes_valid_json(tmp_path, basic_config):

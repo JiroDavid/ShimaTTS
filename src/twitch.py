@@ -83,27 +83,44 @@ class TwitchListener:
                 await asyncio.sleep(backoff)
 
     async def _connect(self, broadcaster_id: str) -> None:
-        async with websockets.connect(EVENTSUB_WS) as ws:
-            self.on_status_change("connected")
-            async for raw in ws:
-                msg = json.loads(raw)
-                msg_type = msg.get("metadata", {}).get("message_type")
+        url = EVENTSUB_WS
+        subscribed = False
+        while True:
+            reconnect_url = None
+            async with websockets.connect(url) as ws:
+                self.on_status_change("connected")
+                async for raw in ws:
+                    msg = json.loads(raw)
+                    msg_type = msg.get("metadata", {}).get("message_type")
 
-                if msg_type == "session_welcome":
-                    session_id = msg["payload"]["session"]["id"]
-                    await asyncio.to_thread(
-                        subscribe_to_redemptions,
-                        self.token, self.client_id, broadcaster_id, session_id
-                    )
+                    if msg_type == "session_welcome":
+                        # Subscriptions carry over to a reconnect session;
+                        # only subscribe on the first welcome
+                        if not subscribed:
+                            session_id = msg["payload"]["session"]["id"]
+                            await asyncio.to_thread(
+                                subscribe_to_redemptions,
+                                self.token, self.client_id, broadcaster_id, session_id
+                            )
+                            subscribed = True
 
-                elif msg_type == "notification":
-                    event = msg.get("payload", {}).get("event", {})
-                    reward_title = event.get("reward", {}).get("title", "")
-                    if reward_title == self.reward_name:
-                        username = event.get("user_login", "")
-                        text = event.get("user_input", "")
-                        if username and text:
-                            self.on_redemption(username, text)
+                    elif msg_type == "session_reconnect":
+                        reconnect_url = msg["payload"]["session"]["reconnect_url"]
+                        logger.info("Twitch requested session reconnect")
+                        break
+
+                    elif msg_type == "notification":
+                        event = msg.get("payload", {}).get("event", {})
+                        reward_title = event.get("reward", {}).get("title", "")
+                        if reward_title == self.reward_name:
+                            username = event.get("user_login", "")
+                            text = event.get("user_input", "")
+                            if username and text:
+                                self.on_redemption(username, text)
+
+            if reconnect_url is None:
+                return
+            url = reconnect_url
 
     def stop(self) -> None:
         self._running = False
